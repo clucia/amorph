@@ -1,0 +1,28 @@
+[  
+  {
+    "name": "example thing",
+    "slug": "exam0",
+    "config": {
+      "addr": "10.0.45.17",
+      "webaddresses": [ 
+        "http://www.mydomain.com",
+        "http://example0.mydomain.com",
+        "http://mydomain.com"
+      ],
+      "rootpassword": "jwwbli5rn9__83"
+    }
+  },
+  {
+    "name": "another example thing",
+    "slug": "exam1",
+    "config": {
+      "addr": "10.0.22.98",
+      "webaddresses": [ 
+        "http://www.mydomain.com",
+        "http://example1.mydomain.com",
+        "http://mydomain.com"
+      ],
+      "rootpassword": "jwwbli5rn9__83"
+    }
+  }
+]  
