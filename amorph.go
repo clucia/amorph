@@ -24,12 +24,23 @@ import (
 
 // internal concrete implementation of an Amorp
 type Amorph interface{}
+type nullType struct{}
+
+var NULL nullType // Topological NULL. i.e. might be used in slices after a subtract
 
 // NewAmorphFromReader builds an Amorph from an io.Reader
 func NewAmorphFromReader(rdr io.Reader) (amorphOut Amorph, err error) {
 	decoder := json.NewDecoder(rdr)
 	err = decoder.Decode(&amorphOut)
 	return //
+}
+
+func NewNullSlice(l int) Amorph {
+	ar := make([]interface{}, l)
+	for i := range ar {
+		ar[i] = NULL
+	}
+	return ar
 }
 
 // NewAmorphFromFile builds an Amorph from a file specified by name

@@ -1,27 +1,176 @@
 # Introduction
 
-Decoding json into an interface{} produces an hierarchical arrangement of four data types: float64, string are 'primative types' and form 'leaf nodes' in the hierarchy, []interface, and map[string]interface{} are compound types and compose layers of the hierarchy around the primative and compound types.
+Decoding json into an interface{} produces an hierarchical arrangement of four data types: 
++ map[string]interface{}
++ []interface{}
++ float
++ string
 
-This hierarchical arrangement has no name that I've been able to find, so I label it Amorph which is short for Amorphic. The four types listed above will be referred to as the A4 types.
+I could not find a name for a structure composed of these four types, so I called it an `Amorph`.
+
+This library: [github.com/clucia/amorph](github.com/clucia/amorph) provides a number of useful tools for manipulating `Amorphs`. 
+
+In particular:
+#### Diff/Patch Operations:
++ Diff - generate a representation of the differences between two Amorphs
++ PatchFwd - Apply a set of differences to an `Amorph`
++ PatchRev - Reverse apply a set of differences to an `Amorph`
+
+#### Set Operations:
++ Union
++ Intersection
++ Difference (subtraction)
++ Topological Intersection (leaf values are ignored)
++ Topological Difference (leaf values are ignored)
+
+#### Utility Operations:
++ DeepCopy - Duplicate an Amorph
++ DeepEqual - Compare two Amorphs for equality
+
+#### Walker Operations
+Used internally in the implementation of Diff and Patch, walking an Amorph is also availble
+to users of this package.
+
+#### Additional background
++ JSON
++ gojq - A query language for Amorphs
++ Amorph Creation - Examples
++ Walker Behavior - Used internally to Diff/Patch
+---
+---
+---
+# Amorph Diff and Patch operations
+## `amorph.Diff()` generates a Patch containing the differences of two `Amorphs`.
+
+For example, you have two Amorphs that represent 'before' and 'after' conditions.
+
+    patch, err := amorph.Diff(before, after)
+   
+Applying the patch in the forward direction to 'before' will produce 'after'.
+
+Applying the patch in the reverse direction to 'after' will produce 'before'.
+
+## PatchFwd and PatchRev
+
+Formerly known as ApplyFwd and ApplyRev which are still included for compatibility, but, 
+are now deprecated.
+
+The patch methods PatchFwd and PatchRev take an Amorph as input and generate a new Amorph as output. The output Amorph will contain the input Amorph with the differences from the Patch applied.
+
+    result, err := amorph.PatchFwd(patch, before)
+    
+    // amorph.DeepEqual(after, result) will be true
+
+A patch can also be reverse applied:
+
+    result, err := amorph.PatchRev(patch, after)
+    
+    // amorph.DeepEqual(before, result) will be true
+---
+---
+---
+
+
+# Set Operations
++ Union - union of two Amorphs
++ Intersection - Intersection of two Amorphs
++ TopoIntersection - Topological Intersection of two Amorphs
++ Difference - Difference of two Amorphs
++ TopoDifference - Topological Difference of two Amorphs
+-----
+## Union
+
+	Union(a0, a1 Amorph, ops ...int) (ar Amorph, err error)
+
+Union combines two amorphs.
+
+If there are two leaf nodes in the same topological position, this is a conflict. There are a number of options for dealing with conflicts.
+### Conflict Resolution Options (Described below) are supported
+
+-----
+## Intersection
+
+Intersection creates an amorph containing all of the values that Amorph0 and Amorph1 have in common.
+
+	Intersection(a0, a1 Amorph, ops ...int) (ar Amorph, err error)
+
+### Intersection has no options
+
+## TopoIntersection
+	TopoIntersection(a0, a1 Amorph, ops ...int) (ar Amorph, err error)
+
+If there are two leaf nodes in the same topological position, this is a conflict. There are a number of options for dealing with conflicts.
+
+### Conflict Resolution Options (Described below) are supported
+
+-----
+## Difference
+
+Difference creates an Amorph with the values in subtrahend removed from the minuend.
+
+	Difference(minuend, subtrahend Amorph, ops ...int) (Amorph, error)
+
+### OptDifferenceMustSubtract
+This option tells Difference to return an error if there is something in the subtraend not present in the minuend.
+
+-----
+## TopoDifference
+
+TopoDifference creates an amorph containing all of the values in the minuend that do not have a value in the topologically same position in the subtrahend.
+
+	TopoDifference(min, a1 Amorph, ops ...int) (Amorph, error)
+
+### OptDifferenceMustSubtract
+This option tells TopoDifference to return an error if there is something in the subtraend not present in the minuend.
+
+----
+## Conflict Resolution Options (for Union and TopoIntersection)
+### OptUnionSliceResolveAmorph0
+When a conflict occurs, the value in Amorph0 is in the result.
+
+### OptUnionSliceResolveAmorph1
+When a conflict occurs, the value in Amorph1 is in the result.
+
+### OptUnionSliceAlways (also the default behavior)
+When a conflict occurs, a slice containing Amorph0 and Amorph1 is added to the result.
+
+### OptUnionSliceNotEqual
+When a conflict occurs, if the values are equal, one of them is added to the result. If they are not equal, a slice containing Amorph0 and Amorph1 is added to the result.
+# Utility Operations
+## DeepCopy(a0, a1) - Create an Amorph from any arbitrary data object:
+
+amorph.DeepCopy encodes the input in json and then decodes it into an interface{}. The output will include only A4 types.
+
+    copyOfInputAmorph := amorph.DeepCopy(inputAmorph)
+
+## Amorph DeepEqual(a0, a1 amorph.Amorph) bool
+
+Compares two Amorphs, returns true or false. While 'walking' the data structure, any data type found one of the A4 types results in a call to reflect.DeepEqual.
+
+    // data0 and data1 are from above examples
+    eq := amorph.DeepEqual(inputAmorph0, inputAmorph1)
+# Additional Background
+
+# JSON
 
 The json aspect of this README is only an example of where the data might come from, Amorphs can be constructed in other ways as well.
 
 Other types are handled in a limited, and not efficient manner. This of course could be addressed, but would require the reflect package, which this library only uses as a last resort.
-# Value Proposition
 
-amorph provides a Diff function that diffs two Amorphs and produces a Patch. A Patch can be applied to an Amorph and a new Amorph reflecting the differences is produced. Patches can be both forward and reverse applied.
+# gojq
 
-The Walker provides a means to iterate over an Amorph and provides functions needed to fully manipulate it.
+`gojq` is a library that implements `jq` in a Go program and operates on Amorphs.
 
-Amorphs also work with gojq which allows sophisticated queries to be run on an Amorph and producing results that are Amorphs as well.
 # Amorph Creation
 ## Literal Amorph:
 
-	simpleLiteralAmorph := []interface{}{3.14159}
+    var simpleLiteralAmorph amorph.Amorph
+	simpleLiteralAmorph = []interface{}{3.14159}
 	
 ## A more sophisticated literal Amorph:
 
-	literalAmorph := []interface{}{
+    var literalAmorph amorph.Amorph
+	literalAmorph = []interface{}{
 		"123",
 		"456",
 		[]interface{}{
@@ -67,47 +216,10 @@ Amorphs also work with gojq which allows sophisticated queries to be run on an A
 	amorphExample1, err := amorph.NewAmorphFromReader(rdr)
 
 
-
-## DeepCopy - Create an Amorph from any arbitrary data object:
-
-amorph.DeepCopy encodes the input in json and then decodes it into an interface{}. The output will include only A4 types.
-
-    copyOfInputAmorph := amorph.DeepCopy(inputAmorph)
-
-## Amorph DeepEqual
-
-Compares two Amorphs, returns true or false. While 'walking' the data structure, any data type found one of the A4 types results in a call to reflect.DeepEqual.
-
-    // data0 and data1 are from above examples
-    eq := amorph.DeepEqual(inputAmorph0, inputAmorph1)
-
-## Amorph Diff function
-
-As an example, you have two Amorphs that represent 'before' and 'after' conditions.
-
-amorph.Diff()  generates a Patch containing their differences.
-
-    patch, err := amorph.Diff(before, after)
-   
-Applying the patch in the forward direction to 'before' will produce 'after'.
-
-Applying the patch in the reverse direction to 'after' will produce 'before'.
-
-## Patch ApplyFwd and ApplyRev
-
-The patch methods ApplyFwd and ApplyRev take an Amorph as input and generate a new Amorph as output. The output Amorph will contain the input Amorph with the differences from the Patch applied.
-
-    result, err := amorph.ApplyFwd(patch, before)
-    
-    // amorph.DeepEqual(after, result) will be true
-
-A patch can also be reverse applied:
-
-    result, err := amorph.ApplyRev(patch, after)
-    
-    // amorph.DeepEqual(before, result) will be true
-
 # Walker behavior
+
+The Walker is used to walk an amorph. It is used in the implementation of Diff and Patch 
+functions.
 ## Walk Function
 
 amorph.Walk iterates over an Amorph and calls the user supplied function at every node in the Amorph.

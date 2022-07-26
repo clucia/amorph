@@ -17,12 +17,20 @@ const (
 
 // ApplyFwd duplicates the input Amorph to the output Amorph with the
 // differences in patch applied
+func PatchFwd(patch Patch, amorphIn Amorph) (absout Amorph, err error) {
+	return apply(DirFwd, patch, amorphIn)
+}
+
 func ApplyFwd(patch Patch, amorphIn Amorph) (absout Amorph, err error) {
 	return apply(DirFwd, patch, amorphIn)
 }
 
 // ApplyFwd duplicates the input Amorph to the output Amorph with the
 // differences in patch REVERSE applied
+func PatchRev(patch Patch, amorphIn Amorph) (amorphOut Amorph, err error) {
+	return apply(DirRev, patch, amorphIn)
+}
+
 func ApplyRev(patch Patch, amorphIn Amorph) (amorphOut Amorph, err error) {
 	return apply(DirRev, patch, amorphIn)
 }
@@ -124,7 +132,8 @@ func sliceApply(dir string, ipatch Patch, amorphIn Amorph) (amorphOut Amorph, er
 	var abs2 []interface{}
 
 	if amorphIn == nil {
-		abs2 = make([]interface{}, lenX)
+		// TODO Runtime error assumption
+		abs2 = NewNullSlice(lenX).([]interface{})
 	} else {
 		abs2 = amorphIn.([]interface{})
 		for len(abs2) < lenX {

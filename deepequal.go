@@ -21,12 +21,12 @@ func DeepEqual(amorph0, amorph1 interface{}) bool {
 	switch cvt0 := amorph0.(type) {
 	case string:
 		return stringCmp(cvt0, amorph1)
+	case float64:
+		return float64Cmp(cvt0, amorph1)
 	case []interface{}:
 		return sliceCmp(cvt0, amorph1)
 	case map[string]interface{}:
 		return mapCmp(cvt0, amorph1)
-	case float64:
-		return float64Cmp(cvt0, amorph1)
 	default:
 		return reflect.DeepEqual(amorph0, amorph1)
 	}

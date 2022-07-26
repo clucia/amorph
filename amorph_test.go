@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/slllc/amorph"
+	"github.com/clucia/amorph"
 )
 
 // twowaytest starts with two Amorphs, v0 and v1
@@ -42,6 +42,7 @@ func WalkStringer(in interface{}) (s string) {
 	amorph.Walk(in, func(iter amorph.WalkIter) error {
 		top := iter.Top()
 		key := top.Key()
+		_ = key
 		rval := top.Value()
 
 		// value := top.Dereference(key)
@@ -274,6 +275,7 @@ func Test007(t *testing.T) {
 		fmt.Println("iter = ", iter)
 		top := iter.Top()
 		key := top.Key()
+		_ = key
 		rval := top.Value()
 
 		switch trval := rval.(type) {
