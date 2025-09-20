@@ -10,6 +10,10 @@ I could not find a name for a structure composed of these four types, so I calle
 
 This library: [github.com/clucia/amorph](github.com/clucia/amorph) provides a number of useful tools for manipulating `Amorphs`. 
 
+Please note that I wrote this to use in a particular application, and that application didn't use NULL as are valid in json.
+I simply forgot them. There is a branch called ai-version that has AI generated code for handling NULLs. It's not fully tests. (Like this is! HA!)
+But I'll merge it eventually. 
+
 In particular:
 #### Diff/Patch Operations:
 + Diff - generate a representation of the differences between two Amorphs
