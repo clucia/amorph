@@ -13,6 +13,42 @@ package amorph
 // the Forward direction.
 func Diff(amorph0, amorph1 Amorph) (patch Patch) {
 	switch cvtd0 := amorph0.(type) {
+	case nullType:
+		return map[string]interface{}{
+			"typ":       "raw",
+			"deleteRev": amorph0 == nil,
+			"deleteFwd": amorph1 == nil,
+			"valFwd":    amorph1,
+			"valRev":    amorph0,
+		}
+	case nil:
+		return map[string]interface{}{
+			"typ":       "raw",
+			"deleteRev": true,
+			"deleteFwd": amorph1 == nil,
+			"valFwd":    amorph1,
+		}
+	case float64:
+		return float64Diff(cvtd0, amorph1)
+	case string:
+		return stringDiff(cvtd0, amorph1)
+	case []interface{}:
+		return sliceDiff(cvtd0, amorph1)
+	case map[string]interface{}:
+		return mapDiff(cvtd0, amorph1)
+	default:
+		return map[string]interface{}{
+			"typ":       "raw",
+			"deleteFwd": amorph1 == nil,
+			"deleteRev": amorph0 == nil,
+			"valFwd":    amorph1,
+			"valRev":    amorph0,
+		}
+	}
+}
+
+func Diff0(amorph0, amorph1 Amorph) (patch Patch) {
+	switch cvtd0 := amorph0.(type) {
 	case nil:
 		return map[string]interface{}{
 			"typ":       "raw",

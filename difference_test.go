@@ -153,3 +153,88 @@ func TestDifference001(t *testing.T) {
 	fmt.Println("diff = ", diff, ", err = ", err)
 
 }
+
+func TestNullHandling(t *testing.T) {
+	// Test cases for DeepEqual with NULL
+	tests := []struct {
+		name     string
+		a        amorph.Amorph
+		b        amorph.Amorph
+		expected bool
+	}{
+		{
+			name:     "NULL equals NULL",
+			a:        amorph.NULL,
+			b:        amorph.NULL,
+			expected: true,
+		},
+		{
+			name:     "NULL not equals nil",
+			a:        amorph.NULL,
+			b:        nil,
+			expected: false,
+		},
+		{
+			name:     "NULL not equals string",
+			a:        amorph.NULL,
+			b:        "test",
+			expected: false,
+		},
+		{
+			name:     "NULL not equals empty slice",
+			a:        amorph.NULL,
+			b:        []interface{}{},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := amorph.DeepEqual(tt.a, tt.b)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestDiffWithNull(t *testing.T) {
+	// Test cases for Diff with NULL
+	tests := []struct {
+		name string
+		a    amorph.Amorph
+		b    amorph.Amorph
+	}{
+		{
+			name: "Diff NULL to value",
+			a:    amorph.NULL,
+			b:    "test",
+		},
+		{
+			name: "Diff value to NULL",
+			a:    "test",
+			b:    amorph.NULL,
+		},
+		{
+			name: "Diff NULL to NULL",
+			a:    amorph.NULL,
+			b:    amorph.NULL,
+		},
+		{
+			name: "Diff slice with NULL elements",
+			a:    []interface{}{amorph.NULL, "test", amorph.NULL},
+			b:    []interface{}{"test", amorph.NULL, "test"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			patch := amorph.Diff(tt.a, tt.b)
+			restored0, err := amorph.ApplyFwd(patch, tt.a)
+			assert.NoError(t, err)
+			assert.True(t, amorph.DeepEqual(restored0, tt.b))
+
+			restored1, err := amorph.ApplyRev(patch, restored0)
+			assert.NoError(t, err)
+			assert.True(t, amorph.DeepEqual(restored1, tt.a))
+		})
+	}
+}

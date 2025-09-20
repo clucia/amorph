@@ -36,6 +36,38 @@ func ApplyRev(patch Patch, amorphIn Amorph) (amorphOut Amorph, err error) {
 }
 
 func apply(dir string, patch Patch, amorphIn Amorph) (amorphOut Amorph, err error) {
+	typ, _, valX, deleteX, ok := unpack(dir, patch)
+	if !ok {
+		return nil, fmt.Errorf("unpack " + dir + " error")
+	}
+
+	// Handle null values
+	if amorphIn == NULL {
+		if deleteX {
+			return NULL, nil
+		}
+		return valX, nil
+	}
+
+	switch {
+	case typ == "string":
+		amorphOut = valX
+		return //
+	case typ == "float64":
+		amorphOut = valX
+		return //
+	case typ == "slice":
+		return sliceApply(dir, patch, amorphIn)
+	case typ == "map":
+		return mapApply(dir, patch, amorphIn)
+	case typ == "raw":
+		return rawApply(dir, patch, amorphIn)
+	default:
+		panic("Malformed Patch")
+	}
+}
+
+func apply0(dir string, patch Patch, amorphIn Amorph) (amorphOut Amorph, err error) {
 	typ, _, valX, _, ok := unpack(dir, patch)
 	if !ok {
 		return nil, fmt.Errorf("unpack " + dir + " error")
